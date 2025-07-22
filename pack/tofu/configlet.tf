@@ -2,20 +2,27 @@
 #  All rights reserved.
 #  SPDX-License-Identifier: MIT
 
-resource "apstra_configlet" "example" {
-  name = var.name
+resource "apstra_datacenter_configlet" "a" {
+  name         = var.name
+  blueprint_id = var.blueprint_id
+  condition    = "role in [\"leaf\"]"
   generators = [
     {
       config_style  = "junos"
       section       = "top_level_hierarchical"
       template_text = <<-EOT
-        ether-options {
-          802.3ad {
-            lacp {
-              force-up;
+      {% for vlan, vlan_info in vlan.items() %}
+      vlans {
+        vn{{vlan_info.id}} {
+          forwarding-options {
+            dhcp-security {
+              arp-inspection;
+              ip-source-guard;
             }
           }
         }
+      }
+      {% endfor %}
       EOT
     },
   ]
